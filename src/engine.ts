@@ -6,8 +6,8 @@ export type Outcome = 'upright' | 'long' | 'short' | 'roof';
 export const CABINS_PER_PLAYER = 12;
 export const MAX_ROLLS = 3;
 
-// out of 50 throws: upright (place) 7, long side (move) 10, short side (swap) 12, roof (nothing) 21
-export const WEIGHTS: Record<Outcome, number> = { upright: 7, long: 10, short: 12, roof: 21 };
+// out of 50 throws: upright (place) 10, long side (move) 10, short side (swap) 8, roof (nothing) 22
+export const WEIGHTS: Record<Outcome, number> = { upright: 10, long: 10, short: 8, roof: 22 };
 export const ACTION_OF: Record<Outcome, 'place' | 'move' | 'swap' | 'none'> = {
   upright: 'place', long: 'move', short: 'swap', roof: 'none',
 };
