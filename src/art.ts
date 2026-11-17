@@ -241,24 +241,59 @@ export function tileArt(def: TileDef, ox: number, oy: number): string {
 
 // ---------- cabin sprites (centered on 0,0, ~ +-20px) ----------
 export type Pose = 'upright' | 'long' | 'short' | 'roof';
+// Cabin drawn from the physical model (14 x 17.3 x 15.3 mm, walls 8.9 mm): a pentagon prism seen from the
+// front-right-above. Each pose is the same solid, rotated to rest on the face that the simulation calls that outcome.
+const MM = 1.4;
+const HW = 7, WALL = 8.9, PEAK = 15.3, LEN = 17.3, ROOF_N = Math.atan2(HW, PEAK - WALL) * 180 / Math.PI; // roof normal angle from +x axis
+const OFF: [number, number] = [6.5, 5]; // depth direction on screen (math coords, y up)
+const PENT: [number, number][] = [[-HW, 0], [HW, 0], [HW, WALL], [0, PEAK], [-HW, WALL]];
+const f1 = (n: number) => n.toFixed(2);
+
+function frontDetails(): string {
+  const w = (x: number, y: number) => `<rect x="${f1(x * MM)}" y="${f1(y * MM)}" width="${f1(2.4 * MM)}" height="${f1(2.4 * MM)}" fill="#fbe9a8" stroke="${I}" stroke-width="0.9" vector-effect="non-scaling-stroke"/>`;
+  return `<rect x="${f1(-1.8 * MM)}" y="0" width="${f1(3.6 * MM)}" height="${f1(5.4 * MM)}" fill="#3a2a20"/>${w(3.4, 3.4)}${w(-5.8, 3.4)}`;
+}
+
+function solid(phiDeg: number, owner: 0 | 1): string {
+  const c = PLAYER_COLORS[owner], phi = phiDeg * Math.PI / 180, co = Math.cos(phi), si = Math.sin(phi);
+  const rot = (p: [number, number]): [number, number] => [(p[0] * co - p[1] * si) * MM, (p[0] * si + p[1] * co) * MM];
+  const front = PENT.map(rot), back = front.map((p) => [p[0] + OFF[0], p[1] + OFF[1]] as [number, number]);
+  const all = front.concat(back);
+  const minY = Math.min(...all.map((p) => p[1])), cx = (Math.min(...all.map((p) => p[0])) + Math.max(...all.map((p) => p[0]))) / 2;
+  const tx = -cx, ty = 14 + minY; // floor at y=14; svg y = ty - mathY
+  const pt = (p: [number, number]) => `${f1(p[0] + tx)},${f1(ty - p[1])}`;
+  const kind = ['base', 'wall', 'roof', 'roof', 'wall'];
+  let quads = '';
+  for (let i = 0; i < 5; i++) {
+    const a = front[i], b = front[(i + 1) % 5], dx = b[0] - a[0], dy = b[1] - a[1];
+    if (dy * OFF[0] - dx * OFF[1] <= 0) continue; // outward normal (dy,-dx) must face the depth direction to be visible
+    const fill = kind[i] === 'roof' ? c.dark : kind[i] === 'base' ? '#d9b887' : c.main;
+    const shade = kind[i] === 'wall' ? '<rect/>' : '';
+    quads += `<polygon points="${pt(a)} ${pt(b)} ${pt([b[0] + OFF[0], b[1] + OFF[1]])} ${pt([a[0] + OFF[0], a[1] + OFF[1]])}" fill="${fill}" stroke="${I}" stroke-width="2" stroke-linejoin="round"/>`;
+    if (kind[i] === 'wall') quads += `<polygon points="${pt(a)} ${pt(b)} ${pt([b[0] + OFF[0], b[1] + OFF[1]])} ${pt([a[0] + OFF[0], a[1] + OFF[1]])}" fill="rgba(0,0,0,.18)"/>`;
+    void shade;
+  }
+  const face = `<polygon points="${front.map(pt).join(' ')}" fill="${c.main}" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  const det = `<g transform="translate(${f1(tx)} ${f1(ty)}) scale(1 -1) rotate(${phiDeg})">${frontDetails()}</g>`;
+  return quads + face + det;
+}
+
+// Resting on a gable end: the pentagon face is on the table, the cabin stands up 17.3 mm tall, base toward us.
+function standing(owner: 0 | 1): string {
+  const c = PLAYER_COLORS[owner], k = 0.42, L = LEN * MM, W = HW * MM, top = 14 - L;
+  const pent = PENT.map(([x, d]) => `${f1(x * MM)},${f1(top - d * MM * k)}`).join(' ');
+  return `<rect x="${f1(-W)}" y="${f1(top)}" width="${f1(2 * W)}" height="${f1(L)}" fill="#d9b887" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>
+    <rect x="${f1(-0.75 * MM)}" y="${f1(top)}" width="${f1(1.5 * MM)}" height="${f1(L)}" fill="#8a6a3a"/>
+    <polygon points="${pent}" fill="${c.main}" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>
+    <g transform="translate(0 ${f1(top)}) scale(1 ${-k})">${frontDetails()}</g>
+    <path d="M${f1(-W)} ${f1(top - WALL * MM * k)}L0 ${f1(top - PEAK * MM * k)}L${f1(W)} ${f1(top - WALL * MM * k)}" fill="none" stroke="${c.dark}" stroke-width="1.6" stroke-linejoin="round"/>`;
+}
+
 export function cabinSprite(pose: Pose, owner: 0 | 1): string {
-  const c = PLAYER_COLORS[owner];
-  const house = `<polygon points="-12,-1 0,-15 12,-1" fill="${c.dark}" stroke="${I}" stroke-width="2.4" stroke-linejoin="round"/>
-    <rect x="-9.5" y="-1" width="19" height="15" fill="${c.main}" stroke="${I}" stroke-width="2.4" stroke-linejoin="round"/>
-    <rect x="-2.5" y="5" width="5" height="9" fill="#3a2a20"/><rect x="4.5" y="2.5" width="3.6" height="3.6" fill="#fbe9a8" stroke="${I}" stroke-width="1"/>
-    <rect x="-8" y="2.5" width="3.6" height="3.6" fill="#fbe9a8" stroke="${I}" stroke-width="1"/>`;
   switch (pose) {
-    case 'upright':
-      return `<g transform="translate(0 2)">${house}</g>`;
-    case 'long':
-      return `<g transform="rotate(90) translate(0 2)">${house}</g>`;
-    case 'short':
-      return `<g><rect x="-15" y="-10" width="30" height="10" rx="2" fill="${c.dark}" stroke="${I}" stroke-width="2.4"/>
-        <rect x="-15" y="0" width="30" height="10" rx="2" fill="${c.main}" stroke="${I}" stroke-width="2.4"/>
-        <path d="M-15 0h30" stroke="${I}" stroke-width="3"/>
-        <path d="M-9 -5h18M-9 5h18" stroke="${I}" stroke-width="1" opacity=".4"/>
-        <rect x="6" y="-12" width="6" height="8" fill="#8b4b3a" stroke="${I}" stroke-width="1.8"/><path d="M6 -8h6" stroke="${I}" stroke-width="1"/></g>`;
-    case 'roof':
-      return `<g transform="rotate(158) translate(0 2)">${house}</g>`;
+    case 'upright': return `<g>${solid(0, owner)}</g>`;
+    case 'long': return `<g>${solid(-90, owner)}</g>`;
+    case 'short': return `<g>${standing(owner)}</g>`;
+    case 'roof': return `<g>${solid(-(90 + ROOF_N), owner)}</g>`;
   }
 }
