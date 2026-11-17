@@ -1,0 +1,23 @@
+# /etc/systemd/system/cabin-country.service
+[Unit]
+Description=Cabin Country game server
+After=network.target
+
+[Service]
+# change User/WorkingDirectory to wherever you cloned it on cloudstuff
+User=gee
+WorkingDirectory=/home/gee/stuglandet
+Environment=NODE_ENV=production
+Environment=PORT=8787
+Environment=HOST=127.0.0.1
+Environment=STATIC_DIR=dist
+ExecStart=/usr/bin/node dist-server/main.mjs
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

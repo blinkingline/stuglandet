@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="icon" href="data:," />
+  <title>Cabin Country</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <main id="app">
+    <header id="hud"></header>
+    <div id="banner" hidden></div>
+    <svg id="board" viewBox="0 0 760 520" role="img" aria-label="Game board"></svg>
+    <section id="tray">
+      <svg id="dice" viewBox="0 -30 360 160"></svg>
+      <div id="hint"></div>
+      <div id="actions"></div>
+    </section>
+    <div id="toast" role="status"></div>
+    <footer><button class="btn alt small" id="b-menu">☰ Menu</button></footer>
+    <div id="over" hidden></div>
+    <div id="menu" hidden></div>
+  </main>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
