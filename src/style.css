@@ -3,6 +3,7 @@
 html, body { margin:0; background:#e9d9b8; color:var(--ink);
   font-family: "Chalkboard SE","Comic Neue","Comic Sans MS","Marker Felt",ui-rounded,system-ui,sans-serif; }
 #app { max-width: 920px; margin: 0 auto; padding: 10px 10px 28px; display:flex; flex-direction:column; gap:10px; }
+#side { display:flex; flex-direction:column; gap:10px; }
 #hud { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .pcard { background:var(--paper); border:3px solid var(--ink); border-radius:12px; padding:6px 10px;
   box-shadow:0 4px 0 var(--ink); display:flex; align-items:center; gap:8px; opacity:.72; transition:transform .2s, opacity .2s; }
@@ -63,3 +64,22 @@ footer { text-align:center; }
 #menu details { text-align:left; margin-top:14px; font-size:.92rem; }
 #menu details ul { margin:6px 0 0; padding-left:20px; }
 #menu .note { background:#fff3c4; border:2px solid var(--ink); border-radius:10px; padding:6px 10px; margin-bottom:10px; }
+
+/* Landscape / desktop: board fills the window height, controls sit beside it -> no scrolling */
+@media (min-width:640px) and (min-aspect-ratio:5/4) {
+  #app { max-width:none; height:100dvh; padding:10px 14px; flex-direction:row; align-items:center; justify-content:center; gap:16px; }
+  #board { flex:0 1 auto; width:min(100%, calc((100dvh - 28px) * 760 / 520)); height:auto; aspect-ratio:760 / 520; min-width:0; }
+  #side { flex:0 0 clamp(210px, 26vw, 320px); max-height:calc(100dvh - 20px); overflow-y:auto; padding:2px 2px 8px; }
+  #hud { grid-template-columns:1fr; }
+  .pcard .sub { display:block; }
+  #dice { max-width:none; }
+}
+@media (min-width:640px) and (min-aspect-ratio:5/4) and (max-height:520px) {
+  .pcard .sub { display:none; }
+  #hud { gap:6px; } .pcard { padding:4px 8px; }
+  #side { gap:8px; }
+  #tray { padding:2px 8px 8px; }
+  #dice { max-height:64px; }
+  #hint { font-size:.75rem; margin:0 0 4px; }
+  button.btn { padding:6px 12px; font-size:.95rem; }
+}
