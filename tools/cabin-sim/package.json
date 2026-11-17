@@ -1,0 +1,15 @@
+{
+  "name": "cabin-sim",
+  "private": true,
+  "type": "module",
+  "description": "Physics model of the cabin pieces: which way do they land?",
+  "scripts": {
+    "static": "node static.mjs",
+    "sim": "node run.mjs",
+    "sweep": "node sweep.mjs",
+    "fit": "node fit.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.14.0"
+  }
+}
