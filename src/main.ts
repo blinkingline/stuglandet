@@ -281,6 +281,13 @@ function renderActions() {
     H.textContent = noTargets ? 'Nothing legal for this cabin.' : moveFrom ? 'Now tap a free plot to put it down.' : HELP[d.outcome];
     A.innerHTML = (noTargets ? btn('Skip this cabin', 'b-skip') : '') + (moveFrom ? btn('Cancel', 'b-cancel', true) : '');
   }
+  // While it's not your move (opponent's turn, or a roll is animating) show the roll buttons greyed out
+  // instead of removing them, so the panel doesn't jump around.
+  if (state.phase === 'rolling' && !A.innerHTML) {
+    const left = MAX_ROLLS - state.rollsUsed;
+    A.innerHTML = state.rollsUsed === 0 ? btn('🎲 Roll cabins', 'b-roll', false, true)
+      : btn(`Reroll all (${left} left)`, 'b-roll', true, true) + btn('Keep these', 'b-keep', false, true);
+  }
   const on = (id: string, fn: () => void) => { const e = document.getElementById(id); if (e) e.onclick = fn; };
   on('b-roll', () => dispatch({ type: 'roll' }));
   on('b-keep', () => dispatch({ type: 'keep' }));

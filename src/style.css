@@ -3,7 +3,9 @@
 html, body { margin:0; background:#e9d9b8; color:var(--ink);
   font-family: "Chalkboard SE","Comic Neue","Comic Sans MS","Marker Felt",ui-rounded,system-ui,sans-serif; }
 #app { max-width: 920px; margin: 0 auto; padding: 10px 10px 28px; display:flex; flex-direction:column; gap:10px; }
-#side { display:flex; flex-direction:column; gap:10px; }
+/* portrait: #side dissolves so the order is scores, board, dice; landscape turns it into a sidebar */
+#side { display:contents; }
+#hud { order:0; } #banner { order:1; } #board { order:2; } #tray { order:3; } footer { order:4; }
 #hud { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .pcard { background:var(--paper); border:3px solid var(--ink); border-radius:12px; padding:6px 10px;
   box-shadow:0 4px 0 var(--ink); display:flex; align-items:center; gap:8px; opacity:.72; transition:transform .2s, opacity .2s; }
@@ -16,12 +18,12 @@ html, body { margin:0; background:#e9d9b8; color:var(--ink);
 #tray { background:var(--paper); border:3px solid var(--ink); border-radius:14px; box-shadow:0 5px 0 var(--ink); padding:6px 10px 12px; }
 #dice { width:100%; max-width:520px; display:block; margin:0 auto; height:auto; }
 #hint { min-height:1.5em; text-align:center; font-size:1rem; margin:2px 0 8px; }
-#actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+#actions { min-height:3.4rem; align-items:flex-start; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
 button.btn { font:inherit; font-weight:700; font-size:1.05rem; background:#ffd24a; color:var(--ink); border:3px solid var(--ink);
   border-radius:12px; padding:9px 18px; box-shadow:0 4px 0 var(--ink); cursor:pointer; }
 button.btn:active { transform:translateY(3px); box-shadow:0 1px 0 var(--ink); }
 button.btn.alt { background:#fff; }
-button.btn:disabled { opacity:.45; cursor:default; }
+button.btn:disabled { opacity:.5; filter:grayscale(1); cursor:default; box-shadow:0 4px 0 #8a857c; }
 .hl { fill:rgba(255,255,255,.28); stroke:#fff; stroke-width:3.5; stroke-dasharray:9 7; cursor:pointer; animation:dash 1s linear infinite; }
 .hl-ink { fill:none; stroke:var(--ink); stroke-width:8; pointer-events:none; }
 .hl:hover { fill:rgba(255,255,255,.55); }
@@ -69,17 +71,20 @@ footer { text-align:center; }
 @media (min-width:640px) and (min-aspect-ratio:5/4) {
   #app { max-width:none; height:100dvh; padding:10px 14px; flex-direction:row; align-items:center; justify-content:center; gap:16px; }
   #board { flex:0 1 auto; width:min(100%, calc((100dvh - 28px) * 760 / 520)); height:auto; aspect-ratio:760 / 520; min-width:0; }
-  #side { flex:0 0 clamp(210px, 26vw, 320px); max-height:calc(100dvh - 20px); overflow-y:auto; padding:2px 2px 8px; }
+  #side { display:flex; flex-direction:column; gap:10px; flex:0 0 clamp(210px, 26vw, 320px); max-height:calc(100dvh - 20px); overflow-y:auto; padding:2px 2px 8px; }
   #hud { grid-template-columns:1fr; }
   .pcard .sub { display:block; }
   #dice { max-width:none; }
+  #hint { min-height:3.2em; }
+  #actions { min-height:6.4rem; } /* room for both buttons wrapped to two rows, so the panel never changes height */
 }
 @media (min-width:640px) and (min-aspect-ratio:5/4) and (max-height:520px) {
   .pcard .sub { display:none; }
   #hud { gap:6px; } .pcard { padding:4px 8px; }
   #side { gap:8px; }
   #tray { padding:2px 8px 8px; }
+  #actions { min-height:4.6rem; }
   #dice { max-height:64px; }
-  #hint { font-size:.75rem; margin:0 0 4px; }
+  #hint { font-size:.75rem; margin:0 0 4px; min-height:2.8em; }
   button.btn { padding:6px 12px; font-size:.95rem; }
 }
