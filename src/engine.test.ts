@@ -55,14 +55,14 @@ describe('opening placement', () => {
 });
 
 describe('dice weights', () => {
-  it('match 10/10/8/22 out of 50', () => {
+  it('match the simulated 23.1/20.6/14.7/41.6%', () => {
     const r = mulberry(42); const n = 200000;
     const c: Record<Outcome, number> = { upright: 0, long: 0, short: 0, roof: 0 };
     for (let i = 0; i < n; i++) c[rollOutcome(r)]++;
-    expect(c.upright / n).toBeCloseTo(0.20, 2);
-    expect(c.long / n).toBeCloseTo(0.20, 2);
-    expect(c.short / n).toBeCloseTo(0.16, 2);
-    expect(c.roof / n).toBeCloseTo(0.44, 2);
+    expect(c.upright / n).toBeCloseTo(0.231, 2);
+    expect(c.long / n).toBeCloseTo(0.206, 2);
+    expect(c.short / n).toBeCloseTo(0.147, 2);
+    expect(c.roof / n).toBeCloseTo(0.416, 2);
   });
 });
 

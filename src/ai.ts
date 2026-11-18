@@ -1,7 +1,7 @@
 // Computer opponent. One-ply lookahead on the real scoring rules, a reroll decision based on
 // expected value, and a little noise so it plays well but is not perfect. Pure: no DOM, no I/O.
 import {
-  Action, CABINS_PER_PLAYER, GameState, MAX_ROLLS, Outcome, Player, Rng, WEIGHTS, cityFreePlots,
+  Action, CABINS_PER_PLAYER, GameState, MAX_ROLLS, Outcome, Player, Rng, WEIGHTS, WEIGHT_TOTAL, cityFreePlots,
   freePlots, geometry, legalTargets, movablePlots, other, score, swappablePlots,
 } from './engine';
 
@@ -89,7 +89,7 @@ export function aiAction(s: GameState, rng: Rng = Math.random, o: AiOptions = NO
     const gain: Record<Outcome, number> = { upright: 0, long: 0, short: 0, roof: 0 };
     (['upright', 'long', 'short'] as Outcome[]).forEach((k) => (gain[k] = bestGain(s, k, base)));
     const current = s.dice.reduce((t, d) => t + gain[d.outcome], 0);
-    const per = (Object.keys(WEIGHTS) as Outcome[]).reduce((t, k) => t + (WEIGHTS[k] / 50) * gain[k], 0);
+    const per = (Object.keys(WEIGHTS) as Outcome[]).reduce((t, k) => t + (WEIGHTS[k] / WEIGHT_TOTAL) * gain[k], 0);
     return current + 0.15 < per * s.dice.length ? { type: 'roll' } : { type: 'keep' };
   }
   // resolving

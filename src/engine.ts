@@ -6,8 +6,10 @@ export type Outcome = 'upright' | 'long' | 'short' | 'roof';
 export const CABINS_PER_PLAYER = 12;
 export const MAX_ROLLS = 3;
 
-// out of 50 throws: upright (place) 10, long side (move) 10, short side (swap) 8, roof (nothing) 22
-export const WEIGHTS: Record<Outcome, number> = { upright: 10, long: 10, short: 8, roof: 22 };
+// Odds from the cabin physics simulation (450k throws), in tenths of a percent (out of 1000):
+// upright (place) 23.1%, long side (move) 20.6%, short side (swap) 14.7%, roof (nothing) 41.6%
+export const WEIGHTS: Record<Outcome, number> = { upright: 231, long: 206, short: 147, roof: 416 };
+export const WEIGHT_TOTAL = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
 export const ACTION_OF: Record<Outcome, 'place' | 'move' | 'swap' | 'none'> = {
   upright: 'place', long: 'move', short: 'swap', roof: 'none',
 };
@@ -179,7 +181,7 @@ export function newGame(rng: Rng = Math.random): GameState {
 }
 
 export function rollOutcome(rng: Rng): Outcome {
-  let n = Math.floor(rng() * 50);
+  let n = Math.floor(rng() * WEIGHT_TOTAL);
   for (const o of ['upright', 'long', 'short', 'roof'] as Outcome[]) {
     if (n < WEIGHTS[o]) return o;
     n -= WEIGHTS[o];
