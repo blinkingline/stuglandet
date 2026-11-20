@@ -1,5 +1,5 @@
 import {
-  ACTION_OF, Action, GameState, MAX_ROLLS, Outcome, Player, RuleError, apply, cityFreePlots, freePlots,
+  ACTION_OF, Action, Breakdown, GameState, MAX_ROLLS, Outcome, Player, RuleError, apply, cityFreePlots, freePlots,
   geometry, legalTargets, newGame, onBoard, score,
 } from './engine';
 import { aiAction } from './ai';
@@ -137,7 +137,7 @@ function afterSettle(a: Action | null) {
 
 // ---------- rendering ----------
 function renderAll() {
-  renderHud(); renderBoard(); renderDiceStatic(); renderActions(); renderBanner(); renderOver();
+  renderHud(); renderBoard(); renderDiceStatic(); renderActions(); renderBanner(); renderOver(); renderScoreModal();
 }
 
 function renderHud() {
@@ -145,12 +145,13 @@ function renderHud() {
   if (!ready) { el.innerHTML = ''; return; }
   const sc = score(state);
   el.innerHTML = ([0, 1] as Player[]).map((p) => `
-    <div class="pcard ${state.current === p && state.phase !== 'over' ? 'on' : ''}">
+    <button class="pcard ${state.current === p && state.phase !== 'over' ? 'on' : ''}" data-score title="Show score breakdown">
       <span class="dot" style="background:${PLAYER_COLORS[p].main}"></span>
       <div><div class="nm">${who(p)}${mode === 'online' && p !== mySeat && !presence[p] ? ' (away)' : ''}</div>
       <div class="sub">${PLAYER_COLORS[p].name} · ${onBoard(state, p)} built · ${state.supply[p]} in supply</div></div>
       <div class="pts" title="Score if the game ended now">${sc[p].total}</div>
-    </div>`).join('');
+    </button>`).join('');
+  el.querySelectorAll<HTMLElement>('[data-score]').forEach((b) => { b.onclick = openScore; });
 }
 
 function plotCenter(id: string) {
@@ -378,12 +379,40 @@ function animateRoll(outcomes: Outcome[], owner: Player): Promise<void> {
   }).then(() => { renderDiceStatic(); });
 }
 
+// ---------- score breakdown ----------
+let scoreOpen = false;
+
+function breakdownTable([a, b]: [Breakdown, Breakdown]) {
+  const row = (label: string, k: keyof Breakdown) => `<tr><td>${label}</td><td>${a[k]}</td><td>${b[k]}</td></tr>`;
+  return `<table>
+    <tr><th></th><th style="color:${PLAYER_COLORS[0].dark}">${who(0)}</th><th style="color:${PLAYER_COLORS[1].dark}">${who(1)}</th></tr>
+    ${row('Cabins built', 'cabins')}${row('Next to a lake', 'lake')}${row('In the city', 'city')}${row('Next to a dump', 'dump')}
+    ${row('Most cabins on a tile (+2)', 'tiles')}${row('Most in the city (+3)', 'cityMajority')}${row('Largest group (+6)', 'group')}
+    ${row('Total', 'total').replace('<tr>', '<tr class="tot">')}</table>`;
+}
+
+function renderScoreModal() {
+  const el = $<HTMLElement>('breakdown');
+  if (!scoreOpen || !ready) { scoreOpen = false; el.hidden = true; return; }
+  const live = state.phase !== 'over';
+  el.innerHTML = `<div class="card" role="dialog" aria-modal="true" aria-label="Score breakdown">
+    <h2>Score breakdown</h2>
+    ${live ? '<p class="sub">If the game ended now.</p>' : ''}
+    ${breakdownTable(score(state))}
+    <div style="display:flex;justify-content:flex-end"><button class="btn" id="sb-close">Close</button></div></div>`;
+  el.hidden = false;
+  el.onclick = (e) => { if (e.target === el) closeScore(); };
+  $('sb-close').onclick = closeScore;
+}
+
+function openScore() { if (!ready) return; scoreOpen = true; renderScoreModal(); $('sb-close').focus(); }
+function closeScore() { scoreOpen = false; renderScoreModal(); }
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && scoreOpen) closeScore(); });
+
 // ---------- game over ----------
 function renderOver() {
   const el = $<HTMLElement>('over');
   if (!ready || state.phase !== 'over' || !state.scores) { el.hidden = true; return; }
-  const [a, b] = state.scores;
-  const row = (label: string, k: keyof typeof a) => `<tr><td>${label}</td><td>${a[k]}</td><td>${b[k]}</td></tr>`;
   const tie = state.winners!.length === 2;
   const w = state.winners![0];
   const win = tie ? 'A tie!' : w === mySeat ? 'You win! 🎉' : `${who(w)} wins`;
@@ -391,11 +420,7 @@ function renderOver() {
     ? (rematchAsked ? '<button class="btn" disabled>Waiting for friend…</button>'
       : `<button class="btn" id="o-new">${oppRematch ? 'Rematch (friend is ready)' : 'Rematch'}</button>`)
     : '<button class="btn" id="o-new">Play again</button>';
-  el.innerHTML = `<div class="card"><h2>${win}</h2><table>
-    <tr><th></th><th style="color:${PLAYER_COLORS[0].dark}">${who(0)}</th><th style="color:${PLAYER_COLORS[1].dark}">${who(1)}</th></tr>
-    ${row('Cabins built', 'cabins')}${row('Next to a lake', 'lake')}${row('In the city', 'city')}${row('Next to a dump', 'dump')}
-    ${row('Most cabins on a tile (+2)', 'tiles')}${row('Most in the city (+3)', 'cityMajority')}${row('Largest group (+6)', 'group')}
-    ${row('Total', 'total').replace('<tr>', '<tr class="tot">')}</table>
+  el.innerHTML = `<div class="card"><h2>${win}</h2>${breakdownTable(state.scores)}
     <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button class="btn alt" id="o-look">Look at board</button><button class="btn alt" id="o-menu">Menu</button>${again}</div></div>`;
   el.hidden = false;
   const on = (id: string, fn: () => void) => { const e = document.getElementById(id); if (e) e.onclick = fn; };
@@ -496,6 +521,7 @@ function onNetMessage(m: S2C) {
   }
 }
 
+$('b-score').onclick = openScore;
 $('b-menu').onclick = () => { if (mode === 'menu') return; if (confirm('Leave this game?')) leave(); };
 
 // ---------- boot ----------

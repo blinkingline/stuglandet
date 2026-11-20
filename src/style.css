@@ -7,7 +7,7 @@ html, body { margin:0; background:#e9d9b8; color:var(--ink);
 #side { display:contents; }
 #hud { order:0; } #banner { order:1; } #board { order:2; } #tray { order:3; } footer { order:4; }
 #hud { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.pcard { background:var(--paper); border:3px solid var(--ink); border-radius:12px; padding:6px 10px;
+.pcard { font:inherit; color:inherit; text-align:left; cursor:pointer; background:var(--paper); border:3px solid var(--ink); border-radius:12px; padding:6px 10px;
   box-shadow:0 4px 0 var(--ink); display:flex; align-items:center; gap:8px; opacity:.72; transition:transform .2s, opacity .2s; }
 .pcard.on { opacity:1; transform:translateY(-2px); }
 .pcard .dot { width:22px; height:22px; border:3px solid var(--ink); border-radius:6px; flex:none; }
@@ -41,7 +41,9 @@ button.btn:disabled { opacity:.5; filter:grayscale(1); cursor:default; box-shado
   transition:transform .25s; z-index:5; max-width:90vw; }
 #toast.show { transform:translate(-50%,0); }
 #over { position:fixed; inset:0; background:rgba(28,26,23,.55); display:flex; align-items:center; justify-content:center; padding:14px; z-index:9; }
-#over[hidden] { display:none; }
+#over[hidden], #breakdown[hidden] { display:none; }
+#breakdown { position:fixed; inset:0; background:rgba(28,26,23,.55); display:flex; align-items:center; justify-content:center; padding:14px; z-index:10; overflow:auto; }
+#breakdown .sub { margin:0; font-size:.85rem; opacity:.8; }
 .card { background:var(--paper); border:4px solid var(--ink); border-radius:16px; padding:16px 18px; max-width:520px; width:100%; box-shadow:0 8px 0 var(--ink); }
 .card h2 { margin:0 0 8px; }
 .card table { width:100%; border-collapse:collapse; margin:8px 0 14px; }
